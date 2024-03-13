@@ -14,8 +14,6 @@ activateKey = Key.tab
 escapeKey = Key.esc
 changeRateKey = Key.up
 
-exit = False
-
 class rate:
     long = 60
     short = 1
@@ -24,6 +22,9 @@ class rate:
     auto = .05
 
 currentRate = rate.long
+
+print("Gieven's Autoclicker\nTab: Start/Stop\nUp Arrow: Toggle Speed (60s or 1s cooldown, default 60s)\nEsc: End Program")
+print("__________________________________________")
 
 def main():
     global thread
@@ -39,10 +40,14 @@ def main():
 ##========================================================================================
 def changeRate():
     global currentRate
+    global state
+
     currentRate = rate.long if currentRate == rate.short else rate.short
 
     print("Changed Click Rate: {}".format(currentRate))
-    startThread()
+    
+    if state:
+        restartThread()
 ##========================================================================================
 ##THREADING
 ##========================================================================================
@@ -58,6 +63,11 @@ def startThread():
 
     main()
 
+##Probably the weirdest way to do this but whatever
+def restartThread():
+    toggleState()
+    toggleState()
+
 def endThread():
     global thread
     global event
@@ -66,8 +76,18 @@ def endThread():
 
     while thread.is_alive():
         sleep(rate.fast)
-    
-    print("Thread Terminated")
+
+def toggleState():
+    global state
+
+    state = not state
+    print('Changed State: {}'.format("Running" if state == True else "Stopped"))
+
+    if state:
+        startThread()
+    else:
+        #state is false, terminate running thread
+        endThread()
 
 def task():
     global state
@@ -89,17 +109,9 @@ def task():
 def on_press(key):
     global activateKey
     global changeRateKey
-    global state
 
     if key == activateKey:
-        state = not state
-        print('Changed State: {}'.format(state))
-
-        if state:
-            startThread()
-        else:
-            #state is false, terminate running thread
-            endThread()
+        toggleState()
     if key == changeRateKey:
         changeRate()
 
